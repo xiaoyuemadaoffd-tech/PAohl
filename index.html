@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>沈小月 - 作品集 & 项目经历</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Page Flip Library for Realistic Book Flipping -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bamboo: {
+                            50: '#f4f7f4',
+                            100: '#e3ebe3',
+                            500: '#588157',
+                            700: '#3a5a40',
+                            900: '#1a2e1d',
+                        },
+                        cream: '#fefae0',
+                        warmBg: '#fcfbf7'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 整体视觉尺寸：与浏览器缩放到 110% 等效。
+           Tailwind 的字号/内边距/间距/容器宽（max-w-7xl = 80rem）都是 rem，
+           根字号放大后整页跟着变大，界面自然撑满视图；
+           浏览器里需要跟着缩放的固定尺寸一律写成 rem（px 不会随根字号变）。 */
+        html {
+            font-size: 100%;   /* 16px（1:1，等效浏览器 100% 缩放）；想整体缩放只改这个百分数 */
+        }
+        body {
+            background-color: #fcfbf7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #2b2d42;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        /* 顶部栏：底色比原 bamboo-700 更深，叠一层 70% 不透明度的竖向微渐变，
+           整体仍是半透明（底色 0.85 alpha，透出 15% 页面奶油色）。
+           要改深度/透明度，只调下面几个 rgba 即可： */
+        .top-bar {
+            background-color: rgba(22, 48, 29, 0.85);   /* 加深后的竹绿底 */
+            background-image: linear-gradient(to bottom,
+                rgba(30, 60, 38, 0.70) 0%,              /* 上：略浅 */
+                rgba(6, 16, 9, 0.70) 100%);             /* 下：略深 */
+        }
+        /* 文字风格取自 images/Cover.png：粗体 + 略宽字距、两行排版
+           （第一行城市路线、第二行兴趣志向），行末保留全角逗号；
+           字色用偏黄的浅色，压在深绿底上 */
+        .top-bar-line {
+            color: #eeeaca;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+        /* Flipbook styles */
+        .page-flip-container {
+            box-shadow: 0 10px 30px -5px rgba(0,0,0,0.25);
+            margin: auto;
+        }
+        /* 注意：不要给 #flipbook 加 max-width: 100% !important。
+           StPageFlip 会在容器上写 inline 的 width:100% + max-width:2×页宽，
+           再用 padding-bottom 按「容器宽度的百分比」撑出高度；一旦 max-width
+           被 !important 改成 100%，容器宽度就等于整块翻页区，撑出的高度会跟着
+           放大几倍（482→1018 宽时高度 310→655），造成翻页区出滚动条、页面偏移、
+           翻页动画跳变。单页尺寸已由 JS 按翻页区实际大小算好，无需再兜底。 */
+        #flipbook {
+            flex: none;
+        }
+        .page {
+            background-color: #fff;
+            background-size: contain;
+            background-position: center;
+            overflow: hidden;
+        }
+        /* 注意：图片必须作为 .page 的子元素存在。
+           StPageFlip 初始化时会重写 .page 的内联 style，用 background-image
+           设置的内页图会被清空，导致整本书显示为空白页。 */
+        .page img.page-img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            /* 用 cover 而不是 contain：contain 会在页面框里留出亚像素白边，
+               左右跨页时正好落在中间，看起来就是一条白缝 */
+            object-fit: cover;
+            background-color: #fff;
+        }
+        /* 跨页对缝微调：封底(books2 1)实测海平面在第 318 行，封面(books2 2)在第 327 行，
+           差 9px，直接并排会看到海平面「错开一级」。
+           纵向放大 5% 再上移 1.98%，正好把封面这一页的海平面抬到与封底同高。 */
+        .page img.page-img.seam-align {
+            transform: translateY(-1.98%) scaleY(1.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- TOP BAR: 一句话简介 + 经历锚点快速跳转 -->
+    <!-- 文字排版取自 images/Cover.png：两行、粗体、略宽字距；字色为偏黄的浅色 -->
+    <div class="top-bar">
+        <div class="max-w-7xl w-full mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <p class="top-bar-line text-xs sm:text-[0.8125rem] leading-snug sm:leading-relaxed">
+                <span class="block">苏州 → 西安 → 上海，</span>
+                <span class="block">热爱写作、摄影，致力于发现艺术与文化之美</span>
+            </p>
+            <!-- 原来右侧栏的「经历快速锚点」收进这个选框 -->
+            <select onchange="jumpToExp(this)" aria-label="快速跳转到实习经历"
+                    class="text-xs font-medium bg-cream/95 text-bamboo-900 border border-white/25 rounded-lg px-2.5 py-1.5
+                           cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/60 transition">
+                <option value="" selected>经历锚点</option>
+                <option value="exp-art021">ART021 展会 BD · 品牌合作</option>
+                <option value="exp-publisher">上海书画出版社 · 3000 页校译</option>
+                <option value="exp-education">美育与公共策划 · 4200 户覆盖</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Dual Index Layout -->
+    <div class="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row relative">
+        
+        <!-- LEFT INDEX: Portfolio Category Navigation -->
+        <aside class="w-full md:w-64 bg-white/60 border-r border-gray-200 p-4 md:sticky md:top-0 md:h-screen flex flex-col justify-between">
+            <div>
+                <div class="flex items-center space-x-2 mb-4 pb-2 border-b border-gray-200 text-bamboo-700">
+                    <i data-lucide="folder-kanban" class="w-5 h-5"></i>
+                    <h2 class="font-bold text-sm tracking-wider uppercase">作品集分类索引</h2>
+                </div>
+                <nav class="space-y-1" id="portfolio-nav">
+                    <button onclick="filterPortfolio('all', this)" class="port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between bg-bamboo-700 text-white shadow-sm transition">
+                        <span>全部作品</span>
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full" id="count-all">0</span>
+                    </button>
+                    <button onclick="filterPortfolio('brand', this)" class="port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between text-gray-600 hover:bg-bamboo-50 transition">
+                        <span>品牌合作与落地</span>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" id="count-brand">0</span>
+                    </button>
+                    <button onclick="filterPortfolio('culture', this)" class="port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between text-gray-600 hover:bg-bamboo-50 transition">
+                        <span>文旅策划与美育方案</span>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" id="count-culture">0</span>
+                    </button>
+                    <button onclick="filterPortfolio('digital', this)" class="port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between text-gray-600 hover:bg-bamboo-50 transition">
+                        <span>数字体验与信息可视化</span>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" id="count-digital">0</span>
+                    </button>
+                    <button onclick="filterPortfolio('visual', this)" class="port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between text-gray-600 hover:bg-bamboo-50 transition">
+                        <span>视觉设计与书籍翻阅</span>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" id="count-visual">0</span>
+                    </button>
+                </nav>
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-400">
+                点击作品卡片可查看详情
+            </div>
+        </aside>
+
+        <!-- CENTER WORKSPACE: Grid & Main Content -->
+        <main class="flex-1 p-4 md:p-6 space-y-8 overflow-y-auto">
+            
+            <!-- SECTION 1: PORTFOLIO GALLERY -->
+            <section id="portfolio-section">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <span class="w-2 h-6 bg-bamboo-700 rounded-full mr-2"></span>
+                        个人作品集 (Portfolio)
+                    </h2>
+                    <span class="text-xs text-gray-500">项目部分图片</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="portfolio-grid">
+                    <!-- Dynamic Portfolio Cards Injected by JS -->
+                </div>
+            </section>
+
+            <!-- SECTION 2: EXPERIENCE TIMELINE -->
+            <section id="experience-section" class="pt-6 border-t border-gray-200">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <span class="w-2 h-6 bg-bamboo-700 rounded-full mr-2"></span>
+                        项目与实习经历 (Experience)
+                    </h2>
+                </div>
+
+                <div class="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-bamboo-200" id="experience-timeline">
+                    
+                    <!-- Item 1 -->
+                    <div id="exp-art021" class="relative pl-8 exp-card transition duration-200">
+                        <div class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-bamboo-700 ring-4 ring-warmBg"></div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex flex-wrap justify-between items-start gap-2 mb-1">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">上海廿一文化发展有限公司 (ART021)</h3>
+                                    <p class="text-xs text-bamboo-700 font-medium">BD 部门 · 品牌合作与活动营销</p>
+                                </div>
+                                <span class="text-xs bg-bamboo-50 text-bamboo-800 px-2 py-1 rounded">2025.10</span>
+                            </div>
+                            <ul class="text-xs text-gray-600 space-y-1.5 mt-2 list-disc list-inside">
+                                <li><strong>品牌合作与权益落地：</strong>负责 DIOR (DIOR LADY ART #10)、JNBY、CASETiFY 等 14 个品牌及餐饮合作方的现场宣传权益落实与广告露出。</li>
+                                <li><strong>内容策划与结案：</strong>协助品牌合作论坛落地，发布社媒稿件，整理数据并提炼完成结项汇报。</li>
+                                <li><strong>广告投放数据：</strong>整理媒体及社交平台曝光数据，进行效果分析与策略优化复盘。</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div id="exp-publisher" class="relative pl-8 exp-card transition duration-200">
+                        <div class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-bamboo-700 ring-4 ring-warmBg"></div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex flex-wrap justify-between items-start gap-2 mb-1">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">上海书画出版社</h3>
+                                    <p class="text-xs text-bamboo-700 font-medium">图书编辑部 · 审校与翻译</p>
+                                </div>
+                                <span class="text-xs bg-bamboo-50 text-bamboo-800 px-2 py-1 rounded">2025.06 - 2025.09</span>
+                            </div>
+                            <ul class="text-xs text-gray-600 space-y-1.5 mt-2 list-disc list-inside">
+                                <li><strong>书稿编辑与校对：</strong>协助完成中外美术交流方向十余部书稿审校，校对并翻译海外研究中国艺术书籍（约 3000 页）。</li>
+                                <li>具有优秀的信息筛选、内容提炼与双语资料处理能力。</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div id="exp-education" class="relative pl-8 exp-card transition duration-200">
+                        <div class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-bamboo-700 ring-4 ring-warmBg"></div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex flex-wrap justify-between items-start gap-2 mb-1">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">艺术文化与公共教育项目</h3>
+                                    <p class="text-xs text-bamboo-700 font-medium">苏州工业园区五色石 / 上博致知 / 艺科画室</p>
+                                </div>
+                                <span class="text-xs bg-bamboo-50 text-bamboo-800 px-2 py-1 rounded">2020 - 2026</span>
+                            </div>
+                            <ul class="text-xs text-gray-600 space-y-1.5 mt-2 list-disc list-inside">
+                                <li><strong>展览教育：</strong>担任“上博青铜馆小小讲解员”主讲；制作《非常毕加索》《中国奇谭》美育手册，受小红书与家长好评。</li>
+                                <li><strong>项目协调：</strong>对接 60 个社区与 40 位授课教师，负责物料投放与执行，服务覆盖约 4200 户家庭。</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- RIGHT COLUMN: 个人简介与联系方式 -->
+        <!-- order-first：窄屏堆叠时简介要排在最前面，不能掉到作品列表下面 -->
+        <!-- md:pt-[4.25rem] = 中栏 p-6(1.5) + 标题行(1.75) + mb-4(1) = 4.25rem，让照片顶部
+             与第一排作品卡片的边框齐平（写成 rem，跟根字号一起缩放） -->
+        <aside class="order-first md:order-none w-full md:w-64 bg-white/60 border-l border-gray-200 p-4 md:pt-[4.25rem] md:sticky md:top-0 md:h-screen md:overflow-y-auto custom-scrollbar">
+            <!-- 原比例照片，不裁切、不做圆形。窄屏时限制宽度居中，
+                 否则全宽会有 500px 高，把姓名和联系方式挤到首屏之外 -->
+            <img src="./images/author-photo.jpg" alt="沈小月"
+                 class="w-full max-w-[15rem] mx-auto md:mx-0 md:max-w-none h-auto rounded-lg shadow-sm">
+
+            <h1 class="mt-3 font-bold text-lg text-gray-900 leading-tight">沈小月</h1>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed">上海美术学院 · 艺术学硕士</p>
+
+            <!-- 联系方式直接排列在下面，不用卡片框 -->
+            <div class="mt-3 pt-3 border-t border-gray-200 text-xs space-y-1.5">
+                <a href="tel:15962225704" class="flex items-center text-gray-600 hover:text-bamboo-700 transition">
+                    <i data-lucide="phone" class="w-3 h-3 mr-1.5 shrink-0 text-bamboo-700"></i> 15962225704
+                </a>
+                <a href="mailto:1228928173@qq.com" class="flex items-start text-gray-600 hover:text-bamboo-700 transition break-all">
+                    <i data-lucide="mail" class="w-3 h-3 mr-1.5 mt-0.5 shrink-0 text-bamboo-700"></i> 1228928173@qq.com
+                </a>
+            </div>
+
+            <!-- 艺术集 3x3，点击放大 -->
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center gap-1.5 mb-2 text-bamboo-700">
+                    <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                    <h2 class="text-xs font-bold tracking-wider">艺术集</h2>
+                </div>
+                <div id="photo-grid" class="grid grid-cols-3 gap-1.5">
+                    <!-- 缩略图由 JS 注入 -->
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- MODAL 1: Standard Multi-Image Gallery Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                    <h3 id="modal-title" class="font-bold text-lg text-gray-900">作品详情</h3>
+                    <p id="modal-sub" class="text-xs text-gray-500"></p>
+                </div>
+                <button onclick="closeModal()" class="p-1 rounded-full hover:bg-gray-200 text-gray-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="flex-1 min-h-0 flex flex-col">
+                <!-- 多图展示区：单击图片进入下一张，到最后一张再循环回第一张 -->
+                <div id="modal-viewer" onclick="stepGallery(1)"
+                     class="relative flex-1 min-h-[13.75rem] bg-gray-900 flex items-center justify-center cursor-pointer select-none overflow-hidden">
+                    <img id="modal-image" src="" alt="" draggable="false"
+                         class="max-w-full max-h-full object-contain">
+                    <button type="button" onclick="event.stopPropagation(); stepGallery(-1)"
+                            class="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white transition">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <button type="button" onclick="event.stopPropagation(); stepGallery(1)"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white transition">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                    <div class="absolute bottom-3 left-0 right-0 text-center text-xs text-gray-100 pointer-events-none">
+                        <span id="modal-counter" class="px-2 py-0.5 rounded-full bg-black/50">1 / 1</span>
+                        <span class="ml-2 hidden sm:inline">单击图片查看下一张 · 循环浏览</span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-bamboo-50 border-t border-bamboo-100 max-h-[30vh] overflow-y-auto custom-scrollbar">
+                    <h4 class="font-bold text-sm text-bamboo-900 mb-1">项目阐述与说明</h4>
+                    <p id="modal-desc" class="text-xs text-gray-700 leading-relaxed"></p>
+                    <a id="modal-link" href="#" target="_blank" rel="noopener"
+                       class="mt-3 hidden items-center text-xs font-medium bg-bamboo-700 text-white px-3 py-1.5 rounded-lg hover:bg-bamboo-900 transition">
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-1"></i><span id="modal-link-text">打开在线项目</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Collection Modal —— 美育方案与观展手册：① 仿真展册 ② 成人美育课件 ③ 课程实践 -->
+    <div id="collection-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                    <h3 id="collection-title" class="font-bold text-lg text-gray-900">展册合集</h3>
+                    <p id="collection-sub" class="text-xs text-gray-500"></p>
+                </div>
+                <button onclick="closeCollectionModal()" class="p-1 rounded-full hover:bg-gray-200 text-gray-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+                <div class="bg-bamboo-50 p-4 rounded-xl border border-bamboo-100">
+                    <h4 class="font-bold text-sm text-bamboo-900 mb-1">项目阐述与说明</h4>
+                    <p id="collection-desc" class="text-xs text-gray-700 leading-relaxed"></p>
+                </div>
+
+                <!-- 第一部分：儿童观展手册  -->
+                <section>
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="w-6 h-6 shrink-0 rounded-full bg-bamboo-700 text-white text-[0.6875rem] font-bold flex items-center justify-center">1</span>
+                        <h4 class="font-bold text-sm text-gray-900">儿童观展手册</h4>
+                        <span id="collection-books-count" class="text-xs text-gray-400"></span>
+                    </div>
+                    <div id="collection-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                        <!-- 展册卡片由 JS 注入 -->
+                    </div>
+                </section>
+
+                <!-- 第二部分 / 第三部分：美育课件与课程实践图片组，由 JS 注入 -->
+                <div id="collection-groups" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: 3D Flipbook Interactive Modal -->
+    <div id="book-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] hidden flex flex-col items-center justify-between p-4">
+        <div class="w-full max-w-5xl flex justify-between items-center text-white px-2">
+            <div>
+                <h3 id="book-title" class="font-bold text-lg">模拟翻阅</h3>
+                <p class="text-xs text-gray-400">可以用鼠标或手指按住页面边缘滑动拖拽翻页</p>
+            </div>
+            <button onclick="closeBookModal()" class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Flipbook Container -->
+        <!-- 注意：flipbook-host 是稳定外壳。StPageFlip 初始化后会把 #flipbook
+             节点整个移走，只有每次重新创建内层 #flipbook 才能重复打开多本书 -->
+        <div id="flipbook-host" class="flex-1 w-full min-h-0 overflow-y-auto flex items-center justify-center py-4">
+            <div id="flipbook" class="page-flip-container">
+                <!-- Pages dynamic -->
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4 bg-white/10 px-6 py-2 rounded-full text-white text-xs">
+            <button onclick="flipBookStep(-1)" class="flex items-center hover:text-bamboo-500 transition">
+                <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i> 上一页
+            </button>
+            <span id="page-num-indicator" class="text-gray-300">Page 1</span>
+            <button onclick="flipBookStep(1)" class="flex items-center hover:text-bamboo-500 transition">
+                下一页 <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 4: 图片灯箱（艺术集放大查看） -->
+    <div id="lightbox" class="fixed inset-0 bg-black/92 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4">
+        <button onclick="closeViewer()" class="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <button onclick="stepViewer(-1)" class="absolute left-2 md:left-5 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+            <i data-lucide="chevron-left" class="w-6 h-6"></i>
+        </button>
+        <!-- 单击图片进入下一张，到最后一张循环回第一张 -->
+        <img id="lightbox-img" src="" alt="" draggable="false" onclick="stepViewer(1)"
+             class="max-w-full max-h-[86vh] rounded-lg shadow-2xl object-contain cursor-pointer select-none">
+        <button onclick="stepViewer(1)" class="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+        </button>
+        <div id="lightbox-caption" class="absolute bottom-5 left-0 right-0 text-center text-xs text-gray-300"></div>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        // 展册内页图片路径：./images/books/<folder>/01.jpg ~ NN.jpg
+        // 图片由 tools/render_books.py 从展册 PDF 逐页导出，改页数只需改第二个参数
+        function seqImages(dir, count, pad = 2) {
+            return Array.from({ length: count }, (_, i) =>
+                `${dir}/${String(i + 1).padStart(pad, '0')}.jpg`);
+        }
+
+        function bookPages(folder, count) {
+            return seqImages(`./images/books/${folder}`, count);
+        }
+
+        // 侧栏「艺术集」3x3 网格，图片由 tools/make_photo_grid.py 生成
+        const photoWorks = seqImages('./images/photo', 9);
+
+        // 「美育方案与观展手册」第二部分：成人美育课件（./images/gezhi，1.jpg ~ 8.jpg，不补零）
+        const gezhiCourseware = seqImages('./images/gezhi', 8, 1);
+
+        // 第三部分：课程实践（./images/wuseshi）。
+        // 该目录为交付实拍，文件名不规律（含空格与中文），只能逐个列出
+        const wuseshiPractice = [
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_2.jpg',
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_3.jpg',
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_7.jpg',
+            './images/wuseshi/033a250c551ff161d8707b1c4ba13f2f.jpg',
+            './images/wuseshi/7de85abacd30b66035b96df799fd8a04.jpg',
+            './images/wuseshi/c626e93a76bb8e1a11bc4979f812f1b1.jpg'
+        ];
+
+        // Portfolio Projects Dataset
+        const projects = [
+            {
+                id: 'p1',
+                title: '2025 ART021 品牌合作与现场曝光落地',
+                category: 'brand',
+                type: 'gallery',
+                cover: './images/art021.jpg',
+                images: [
+                    './images/art021/1.jpg',
+                    './images/art021/2.jpg',
+                    './images/art021/3.jpg',
+                    './images/art021/4.jpg',
+                    './images/art021/5.jpg',
+                    './images/art021/6.jpg'
+                ],
+                desc: '在 2025 ART021 SHANGHAI 展会中，负责 DIOR (DIOR LADY ART #10)、JNBY、CASETiFY 等 14 个品牌及餐饮合作方的现场宣传权益与设计理念落地，包含主背景墙、论坛活动布置、户外 Logo 墙及小红书社媒矩阵曝光。'
+            },
+            {
+                id: 'p2',
+                title: '夜游醉白池——沉浸式文旅空间策划',
+                category: 'culture',
+                type: 'gallery',
+                cover: './images/zuibaichi (1).jpg',
+                images: [
+                    './images/zuibaichi (1).jpg',
+                    './images/zuibaichi (2).jpg', 
+                    './images/zuibaichi (3).jpg',
+                    './images/zuibaichi (4).jpg',
+                ],
+                desc: '以董其昌书画元素与松江文脉为核心的沉浸式空间策划，包含概念草图、建模辅助、光影动线设计、After Effects 动态屏风投影装置及 Unity AR 互动剧情，打造诗意夜游美学。'
+            },
+            {
+                id: 'p3',
+                title: '美育方案与观展手册 (儿童与成人分层)',
+                category: 'culture',
+                type: 'collection',
+                cover: './images/xhs.jpg',
+                desc: '针对 7-10 岁少儿及家长的游戏化《观展手册》，以及面向成人的文化深读文案，实现精准受众分层与文化转译。点击卡片进入后可分三部分查看：四本仿真展册、成人美育课件、课程实践记录。',
+                // 第二部分 / 第三部分：图片组（单击缩略图进大图，单击大图翻下一张）
+                groups: [
+                    {
+                        title: '成人美育课件',
+                        hint: '面向成人的文化深读课件，与少儿版《观展手册》形成受众分层，把展品知识转译为可讲授的课件页面。',
+                        thumbAspect: 'aspect-[16/9]',   // gezhi 全部为 2667×1500 的 16:9 页面
+                        images: gezhiCourseware
+                    },
+                    {
+                        title: '课程实践',
+                        hint: '在社区与展厅现场落地的课程实践记录，含《博物馆的秘密》少儿版课程页与现场照片。',
+                        thumbAspect: 'aspect-[4/3]',    // 横竖图混排，四宫格统一比例
+                        images: wuseshiPractice
+                    }
+                ],
+                // 四本仿真展册：内页图由 tools/render_books.py 从展册 PDF 逐页导出
+                children: [
+                    {
+                        id: 'p3-1',
+                        title: '非常毕加索：保罗·史密斯的新视角',
+                        subtitle: '浦东美术馆 · 趣味观看笔记 · 12 页',
+                        type: 'book',
+                        ratio: 1.4036,     // 页面 高/宽，用于计算翻页尺寸
+                        showCover: true,   // 封面单独一屏，其后左右跨页
+                        cover: './images/books/picasso/01.jpg',
+                        pages: bookPages('picasso', 12),
+                        desc: '浦东美术馆《非常毕加索：保罗·史密斯的新视角》配套「趣味观看笔记」。以展厅动线图开场，把美术史知识拆解为「带着问题进入展厅」的观察任务，配合连线、涂画与自评栏目，让 7-10 岁观众在展厅里完成一次可留存的观看。'
+                    },
+                    {
+                        id: 'p3-2',
+                        title: '中国奇谭：造梦奇境艺术展',
+                        subtitle: '观展手册 · 少儿与家长 · 12 页',
+                        type: 'book',
+                        ratio: 1.4036,
+                        showCover: true,
+                        cover: './images/books/qitan/01.jpg',
+                        pages: bookPages('qitan', 12),
+                        desc: '依据《中国奇谭》第一、二部动画短片故事策展的《造梦奇境艺术展》观展手册，以「发现你的不同面」为主线，串联单元导览、故事线索与观展记录，帮助亲子观众把屏幕里的短片转化为展厅中的观看经验。'
+                    },
+                    {
+                        id: 'p3-3',
+                        title: '格间漫游：瑞士当代漫画展',
+                        subtitle: '上海民生现代美术馆 · 观展手册 · 14 页',
+                        type: 'book',
+                        ratio: 1.4036,
+                        showCover: true,
+                        cover: './images/books/gejian/01.jpg',
+                        pages: bookPages('gejian', 14),
+                        desc: '上海民生现代美术馆《格间漫游：瑞士当代漫画艺术展》观展手册。由展览主视觉与展讯引导入场，正文以琉森国际漫画节历年海报为样本，让观众从色彩、构图等维度逐项评分，最后归纳出自己偏好的漫画风格。'
+                    },
+                    {
+                        id: 'p3-4',
+                        title: '58 届博洛尼亚插画展',
+                        subtitle: '朵云轩艺术中心 · 趣味观看笔记 · 10 页',
+                        type: 'book',
+                        ratio: 1.4027,
+                        showCover: true,
+                        cover: './images/books/bologna/01.jpg',
+                        pages: bookPages('bologna', 10),
+                        desc: '朵云轩艺术中心「博洛尼亚插画展 58 届 · 上海站」趣味观看笔记。先以「概念解析」拆解绘画的一致性与多样性，再用具体作品布置观察挑战，让小朋友带着问题在展场里找画，并留出记录与创作的空间。'
+                    }
+                ]
+            },
+            {
+                id: 'p4',
+                title: '隋唐长安地区随葬品可视分析 (CCF 展出)',
+                category: 'digital',
+                type: 'gallery',
+                // 案例图与封面均为该项目线上页面的实拍截图
+                cover: './images/funerary/1.png',
+                images: [
+                    './images/funerary/1.png',
+                    './images/funerary/2.jpg',
+                    './images/funerary/3.jpg',
+                    './images/funerary/4.jpg',
+                    './images/funerary/5.jpg'
+                        ],
+                // 线上可视化链接：弹窗里会出现「进入在线可视化」按钮
+                link: 'https://funerary-objects-va.vercel.app/?view=atom-vfx',
+                linkText: '进入在线可视化',
+                desc: '在第二届 CCF 人文智能大会展出的可视化网页项目。将复杂的考古报告数据转译为可探索的数字交互图表：墓葬随葬品分布、陶俑的空间分布、陶俑类型构成三个视图可切换，支持按性别、官阶、葬式、时期、盗扰情况等多维度筛选与对比，帮助观众理解随葬品背后的阶层与文化交流。'
+            },
+            {
+                id: 'p5',
+                title: '《大唐以西》书籍设计 ',
+                category: 'visual',
+                type: 'book',
+                cover: './images/drawTANG.png',
+                ratio: 1.2857,    // 成品裁切后页面 高/宽
+                showCover: true,  // 第 1 页为封面，单独一屏，其余左右跨页
+                // 内页为《大唐以西》成品书 PDF 按 TrimBox 裁掉裁切线后导出，
+                // 共 20 屏 = 前 19 页 + 封底。前 19 页必须从第 1 页起连续截取，
+                // 否则 (2-3)(4-5)… 的左右跨页配对会整体错位；封底单独收尾
+                pages: bookPages('datangxi', 20),
+                desc: '艺术史 | 丝绸之路 | 知 识'
+            },
+            {
+                id: 'p6',
+                title: '《反摄影者》日式摄影集装帧设计',
+                category: 'visual',
+                type: 'book',
+                cover: './images/photos/books2 (44).jpg',
+                // 内页实拍扫描件（位于 ./images/photos/），共 12 页 = 6 个跨页。
+                // 第 1、2 页固定为「封底 + 封面」并排展示；其余按书中顺序，跳过纯色空页（3/5/13/14…）
+                pages: [
+                    './images/photos/books2 (1).jpg',   // 跨页 1 左：封底
+                    { src: './images/photos/books2 (2).jpg', alignSeam: true }, // 跨页 1 右：封面（叠印书名，需与封底对海平面）
+                    './images/photos/books2 (4).jpg',   // 跨页 2 左：篇章页 MIYAKO / ARAKI / DAIDO
+                    './images/photos/books2 (6).jpg',   // 跨页 2 右：扉页（书名 · 作者）
+                    './images/photos/books2 (7).jpg',   // 跨页 3 左：版权 / 引用文献页
+                    './images/photos/books2 (8).jpg',   // 跨页 3 右：森山大道 摄影作品
+                    './images/photos/books2 (9).jpg',   // 跨页 4 左：摄影作品（雾中都市）
+                    './images/photos/books2 (10).jpg',  // 跨页 4 右：正文（黑与白的新序章）
+                    './images/photos/books2 (11).jpg',  // 跨页 5 左：目录
+                    './images/photos/books2 (12).jpg',  // 跨页 5 右：目录（第四、五章）
+                    './images/photos/books2 (15).jpg',  // 跨页 6 左：正文（森山大道：摄影的质疑者）
+                    './images/photos/books2 (16).jpg'   // 跨页 6 右：正文
+                ],
+                desc: '纪 实 | 黑 白 | 摄影集'
+            }
+        ];
+
+        let pageFlipObj = null;
+
+        // Render Portfolio Grid
+        function renderPortfolio(filterCategory = 'all') {
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = '';
+
+            const filtered = filterCategory === 'all' 
+                ? projects 
+                : projects.filter(p => p.category === filterCategory);
+
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer group flex flex-col";
+                card.onclick = () => openProjectDetail(p.id);
+
+                const badgeText = p.type === 'book' ? '📖 点击翻阅'
+                    : p.type === 'collection' ? `🗂 展册 + 课程实践`
+                    : '📷 单击看图';
+                const badgeColor = p.type === 'book' ? 'bg-amber-600' : 'bg-bamboo-700';
+
+                card.innerHTML = `
+                    <div class="relative h-44 overflow-hidden bg-gray-100">
+                        <img src="${p.cover}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <span class="absolute top-2 right-2 text-[0.625rem] font-bold text-white ${badgeColor} px-2 py-0.5 rounded-full shadow">
+                            ${badgeText}
+                        </span>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-gray-900 group-hover:text-bamboo-700 transition">${p.title}</h3>
+                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">${p.desc}</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-bamboo-700 font-medium">
+                            <span>查看案例</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+            updateCounts();
+        }
+
+        function updateCounts() {
+            document.getElementById('count-all').innerText = projects.length;
+            document.getElementById('count-brand').innerText = projects.filter(p => p.category === 'brand').length;
+            document.getElementById('count-culture').innerText = projects.filter(p => p.category === 'culture').length;
+            document.getElementById('count-digital').innerText = projects.filter(p => p.category === 'digital').length;
+            document.getElementById('count-visual').innerText = projects.filter(p => p.category === 'visual').length;
+        }
+
+        // 导航按钮样式（选中/未选中）：多处复用，提到常量避免重复写死
+        const NAV_CLASS = "port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between text-gray-600 hover:bg-bamboo-50 transition";
+        const NAV_ACTIVE_CLASS = "port-nav-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-between bg-bamboo-700 text-white shadow-sm transition";
+
+        // 分类索引与「项目与实习经历」的对应关系：
+        // 点某个索引时只保留对应公司的条目；digital（数字体验与信息可视化）
+        // 没有对应实习，整段隐藏，页面上只留个人作品集
+        const experienceByCategory = {
+            all:     ['exp-art021', 'exp-publisher', 'exp-education'],
+            brand:   ['exp-art021'],      // 上海廿一文化（ART021）
+            culture: ['exp-education'],   // 艺术文化与公共教育项目
+            visual:  ['exp-publisher'],   // 上海书画出版社
+            digital: []
+        };
+
+        // 按分类筛选「项目与实习经历」（与作品列表同步）
+        function filterExperience(cat) {
+            const showIds = experienceByCategory[cat] || experienceByCategory.all;
+            document.querySelectorAll('.exp-card').forEach(el => {
+                el.classList.toggle('hidden', !showIds.includes(el.id));
+            });
+            document.getElementById('experience-section')
+                .classList.toggle('hidden', showIds.length === 0);
+        }
+
+        // Filter Function
+        function filterPortfolio(cat, btn) {
+            document.querySelectorAll('.port-nav-btn').forEach(b => {
+                b.className = NAV_CLASS;
+            });
+            btn.className = NAV_ACTIVE_CLASS;
+            renderPortfolio(cat);
+            filterExperience(cat);
+        }
+
+        // Open Project Details (Modal Branch)
+        function openProjectDetail(id) {
+            const p = projects.find(item => item.id === id);
+            if(!p) return;
+
+            if(p.type === 'book') {
+                openBookModal(p);
+            } else if(p.type === 'collection') {
+                openCollectionModal(p);
+            } else {
+                openGalleryModal(p);
+            }
+        }
+
+        // Open Collection Modal —— 一个作品窗口内分三部分：美育手册 / 成人美育课件 / 课程实践
+        function openCollectionModal(p) {
+            document.getElementById('collection-title').innerText = p.title;
+            document.getElementById('collection-sub').innerText =
+                `共三部分 · 展册点击封面逐页翻阅，图片单击可循环大图浏览`;
+            document.getElementById('collection-desc').innerText = p.desc;
+            document.getElementById('collection-books-count').innerText =
+                `共 ${p.children.length} 本`;
+
+            const grid = document.getElementById('collection-grid');
+            grid.innerHTML = '';
+
+            p.children.forEach(child => {
+                const card = document.createElement('div');
+                card.className = "group cursor-pointer flex flex-col h-full";
+                card.onclick = () => openBookModal(child);
+
+                // 竖版书籍造型：封面按开本比例竖排，平放在页面上。
+                // 标题固定两行高度 + 页脚 mt-auto：保证四张卡片的标题、副标题、
+                // 页脚三级文字横向对齐
+                card.innerHTML = `
+                    <div class="relative w-full aspect-[5/7] rounded-lg overflow-hidden bg-gray-100 ring-1 ring-black/5 shadow-[0_8px_18px_-8px_rgba(0,0,0,0.5)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_30px_-10px_rgba(0,0,0,0.55)]">
+                        <img src="${child.cover}" alt="${child.title}" class="w-full h-full object-cover">
+                        <!-- 书脊阴影：让它读起来像一本平放的书，而不是一张图 -->
+                        <span class="absolute inset-y-0 left-0 w-[7px] bg-gradient-to-r from-black/30 via-black/10 to-transparent"></span>
+                        <span class="absolute inset-y-0 right-0 w-[3px] bg-gradient-to-l from-black/15 to-transparent"></span>
+                        <span class="absolute top-2 right-2 text-[0.625rem] font-bold text-white bg-amber-600/95 px-2 py-0.5 rounded-full shadow">
+                            📖 点击翻阅
+                        </span>
+                    </div>
+                    <div class="mt-3 flex flex-1 flex-col">
+                        <h4 class="font-bold text-sm text-gray-900 leading-snug min-h-[2.5rem] group-hover:text-bamboo-700 transition">${child.title}</h4>
+                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">${child.subtitle || ''}</p>
+                        <div class="mt-auto pt-3">
+                            <div class="pt-2 border-t border-gray-100 flex items-center text-xs text-bamboo-700 font-medium">
+                                <span>翻开展册</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // 第二部分 / 第三部分：图片组。序号从 2 开始（第一部分是展册）
+            const groupsWrap = document.getElementById('collection-groups');
+            groupsWrap.innerHTML = '';
+            (p.groups || []).forEach((g, gi) => {
+                const section = document.createElement('section');
+                section.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <span class="w-6 h-6 shrink-0 rounded-full bg-bamboo-700 text-white text-[0.6875rem] font-bold flex items-center justify-center">${gi + 2}</span>
+                        <h4 class="font-bold text-sm text-gray-900">${g.title}</h4>
+                        <span class="text-xs text-gray-400">共 ${g.images.length} 张 · 单击查看大图</span>
+                    </div>
+                    <p class="text-xs text-gray-500 leading-relaxed mb-3 pl-8">${g.hint || ''}</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" data-group-grid></div>
+                `;
+                const groupGrid = section.querySelector('[data-group-grid]');
+                g.images.forEach((src, i) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    // 用 object-contain 而不是 cover：课件与课程页里的文字不能被裁掉
+                    btn.className = `group block w-full ${g.thumbAspect || 'aspect-[4/3]'} overflow-hidden rounded-lg bg-gray-50 ring-1 ring-black/5 hover:ring-2 hover:ring-bamboo-500 hover:shadow-md transition`;
+                    btn.innerHTML = `<img src="${src}" alt="${g.title} ${i + 1}" loading="lazy"
+                                          class="w-full h-full object-contain group-hover:scale-[1.03] transition duration-300">`;
+                    // 从点击的那张开始，之后单击大图即可循环往后翻
+                    btn.onclick = () => openViewer(g.images, i, g.title);
+                    groupGrid.appendChild(btn);
+                });
+                groupsWrap.appendChild(section);
+            });
+
+            document.getElementById('collection-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // 关闭合集窗口（若翻页窗口开着，会一并关闭）
+        function closeCollectionModal() {
+            closeBookModal();
+            document.getElementById('collection-modal').classList.add('hidden');
+        }
+
+        // Open Standard Gallery Modal —— 多图改为「单击图片翻下一张」的循环浏览
+        function openGalleryModal(p) {
+            document.getElementById('modal-title').innerText = p.title;
+            document.getElementById('modal-sub').innerText =
+                `共 ${p.images.length} 张 · 单击图片进入下一张（循环）`;
+            document.getElementById('modal-desc').innerText = p.desc;
+
+            // 有线上地址就显示跳转按钮（如隋唐随葬品可视化）
+            const linkEl = document.getElementById('modal-link');
+            if (p.link) {
+                linkEl.href = p.link;
+                document.getElementById('modal-link-text').innerText = p.linkText || '打开在线项目';
+                linkEl.classList.remove('hidden');
+                linkEl.classList.add('inline-flex');
+            } else {
+                linkEl.classList.add('hidden');
+                linkEl.classList.remove('inline-flex');
+            }
+
+            galleryImages = p.images || [];
+            galleryIndex = 0;
+            renderGalleryImage();
+
+            document.getElementById('image-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // 多图浏览状态：单击图片（或方向键/箭头按钮）往后翻，到末张回到首张
+        let galleryImages = [];
+        let galleryIndex = 0;
+
+        function renderGalleryImage() {
+            document.getElementById('modal-image').src = galleryImages[galleryIndex] || '';
+            document.getElementById('modal-counter').innerText =
+                `${galleryIndex + 1} / ${galleryImages.length}`;
+        }
+
+        function stepGallery(step) {
+            if (!galleryImages.length) return;
+            galleryIndex = (galleryIndex + step + galleryImages.length) % galleryImages.length;
+            renderGalleryImage();
+        }
+
+        // 侧栏「艺术集」3x3 网格
+        function renderPhotoGrid() {
+            const grid = document.getElementById('photo-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            photoWorks.forEach((src, i) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = "block w-full aspect-square overflow-hidden rounded-md ring-1 ring-black/5 bg-gray-100 hover:opacity-80 transition";
+                btn.innerHTML = `<img src="${src}" alt="艺术集 ${i + 1}" loading="lazy"
+                                      class="w-full h-full object-cover">`;
+                btn.onclick = () => openViewer(photoWorks, i, '艺术集');
+                grid.appendChild(btn);
+            });
+        }
+
+        // 通用大图查看器（灯箱）：单击图片进入下一张，到末张循环回第一张。
+        // 艺术集、美育课件、课程实践三处共用
+        let viewerImages = [];
+        let viewerIndex = 0;
+        let viewerLabel = '';
+
+        function openViewer(images, index = 0, label = '') {
+            viewerImages = images || [];
+            if (!viewerImages.length) return;
+            viewerIndex = ((index % viewerImages.length) + viewerImages.length) % viewerImages.length;
+            viewerLabel = label;
+            renderViewerImage();
+            document.getElementById('lightbox').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function renderViewerImage() {
+            document.getElementById('lightbox-img').src = viewerImages[viewerIndex];
+            const total = viewerImages.length;
+            document.getElementById('lightbox-caption').innerText = total > 1
+                ? `${viewerLabel ? viewerLabel + ' · ' : ''}${viewerIndex + 1} / ${total} · 单击图片查看下一张`
+                : `${viewerLabel ? viewerLabel + ' · ' : ''}1 / 1`;
+        }
+
+        function stepViewer(step) {
+            if (viewerImages.length < 2) return;
+            viewerIndex = (viewerIndex + step + viewerImages.length) % viewerImages.length;
+            renderViewerImage();
+        }
+
+        function closeViewer() {
+            document.getElementById('lightbox').classList.add('hidden');
+        }
+
+        // 覆盖层键盘操作：Esc 关掉最上层，←/→ 切换大图或翻多图详情
+        document.addEventListener('keydown', (e) => {
+            const lb = document.getElementById('lightbox');
+            if (lb && !lb.classList.contains('hidden')) {
+                if (e.key === 'Escape') closeViewer();
+                else if (e.key === 'ArrowLeft') stepViewer(-1);
+                else if (e.key === 'ArrowRight') stepViewer(1);
+                return;
+            }
+            const gm = document.getElementById('image-modal');
+            if (gm && !gm.classList.contains('hidden')) {
+                if (e.key === 'Escape') closeModal();
+                else if (e.key === 'ArrowLeft') stepGallery(-1);
+                else if (e.key === 'ArrowRight') stepGallery(1);
+                return;
+            }
+            const cm = document.getElementById('collection-modal');
+            if (cm && !cm.classList.contains('hidden') && e.key === 'Escape') closeCollectionModal();
+        });
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+        }
+
+        // 当前可视范围的页码文案：showCover 时封面单独一屏，其余左右跨页；
+        // 总页数为单数时最后一页也单独成屏
+        function viewLabel(startPage, total, showCover) {
+            const single = startPage === total || (showCover && startPage === 1);
+            const pageText = single
+                ? `第 ${startPage} 页 / 共 ${total} 页`
+                : `第 ${startPage}-${startPage + 1} 页 / 共 ${total} 页`;
+            const spread = Math.floor((startPage - 2) / 2) + 2;
+            const totalSpread = showCover ? Math.ceil((total - 1) / 2) + 1 : Math.ceil(total / 2);
+            return `${pageText} · 跨页 ${spread}/${totalSpread}`;
+        }
+
+        // 3D Flipbook Real Flip Functionality
+        function openBookModal(p) {
+            document.getElementById('book-title').innerText = p.title;
+            const showCover = !!p.showCover;
+            document.getElementById('page-num-indicator').innerText =
+                viewLabel(1, p.pages.length, showCover);
+
+            // 每次打开都重建内层容器：StPageFlip 会把 #flipbook 移出 DOM，
+            // 沿用旧节点会导致第二次打开展册时报 null
+            const host = document.getElementById('flipbook-host');
+            host.innerHTML = '';
+            const flipContainer = document.createElement('div');
+            flipContainer.id = 'flipbook';
+            flipContainer.className = 'page-flip-container';
+            host.appendChild(flipContainer);
+
+            // Generate pages（用 <img> 子元素，不能依赖 background-image）
+            // 数组项可以是字符串，也可以是 { src, alignSeam } 用来做跨页对缝微调
+            p.pages.forEach((item) => {
+                const imgSrc = typeof item === 'string' ? item : item.src;
+                const pageDiv = document.createElement('div');
+                pageDiv.className = "page";
+
+                const img = document.createElement('img');
+                img.className = "page-img";
+                if (typeof item === 'object' && item.alignSeam) {
+                    img.classList.add('seam-align');
+                }
+                img.src = imgSrc;
+                img.alt = p.title;
+                img.draggable = false;
+
+                pageDiv.appendChild(img);
+                flipContainer.appendChild(pageDiv);
+            });
+
+            document.getElementById('book-modal').classList.remove('hidden');
+
+            // Initialize StPageFlip
+            setTimeout(() => {
+                if (pageFlipObj) {
+                    pageFlipObj.destroy();
+                    pageFlipObj = null;
+                }
+
+                // 比例优先取自书本配置（各展册开本不同），缺省沿用原单页比例
+                const RATIO = p.ratio || 566 / 466;
+                // 根字号大于 16px（当前 110%）时，翻页尺寸上限同步放大，
+                // 否则书会比整页视觉小一圈；比例来自 rem 与基准字号的比
+                const scale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
+                // 按翻页区实际可视尺寸算（不能再用 window 估）：容器宽高必须与
+                // 页面尺寸一致，否则会出滚动条、翻页动画跳变。clientWidth/Height
+                // 含内边距，要减掉容器自身的 padding 才不会溢出
+                const hostEl = document.getElementById('flipbook-host');
+                const hostStyle = getComputedStyle(hostEl);
+                const padY = parseFloat(hostStyle.paddingTop) + parseFloat(hostStyle.paddingBottom);
+                const padX = parseFloat(hostStyle.paddingLeft) + parseFloat(hostStyle.paddingRight);
+                const availH = Math.max(200, hostEl.clientHeight - padY - 4);
+                const availW = Math.max(200, hostEl.clientWidth - padX - 4) / 2;
+                let pageH = Math.min((showCover ? 640 : 580) * scale, availH);
+                let pageW = Math.round(pageH / RATIO);
+                if (pageW > availW) {
+                    pageW = Math.floor(availW);
+                    pageH = Math.round(pageW * RATIO);
+                }
+
+                pageFlipObj = new St.PageFlip(flipContainer, {
+                    width: pageW,
+                    height: pageH,
+                    size: "fixed",
+                    minWidth: Math.round(200 * scale),
+                    maxWidth: Math.round(700 * scale),
+                    minHeight: Math.round(200 * scale),
+                    maxHeight: Math.round(900 * scale),
+                    maxShadowOpacity: 0.5,
+                    // 展册类开本设 showCover: true —— 封面单独一屏，其后左右跨页；
+                    // 《反摄影者》那类「封底+封面」并排的扫描件保持 false
+                    showCover: showCover,
+                    usePortrait: false,
+                    mobileScrollSupport: false
+                });
+
+                pageFlipObj.loadFromHTML(document.querySelectorAll('#flipbook .page'));
+
+                pageFlipObj.on('flip', (e) => {
+                    document.getElementById('page-num-indicator').innerText =
+                        viewLabel(e.data + 1, p.pages.length, showCover);
+                });
+            }, 100);
+        }
+
+        // 底部翻页按钮（对象可能已被销毁，先判空）
+        function flipBookStep(dir) {
+            if (!pageFlipObj) return;
+            if (dir < 0) {
+                pageFlipObj.flipPrev();
+            } else {
+                pageFlipObj.flipNext();
+            }
+        }
+
+        function closeBookModal() {
+            document.getElementById('book-modal').classList.add('hidden');
+            if(pageFlipObj) {
+                pageFlipObj.destroy();
+                pageFlipObj = null;
+            }
+        }
+
+        // 顶部选框：跳转到对应实习经历并高亮
+        function jumpToExp(selectEl) {
+            const expId = selectEl.value;
+            if (!expId) return;
+            selectEl.selectedIndex = 0;   // 复位成提示项，方便再次选择同一项
+            // 目标条目可能被当前分类筛掉了，先回到「全部作品」再跳转
+            const navButtons = document.querySelectorAll('#portfolio-nav .port-nav-btn');
+            if (navButtons.length) {
+                navButtons.forEach((b, i) => { b.className = i === 0 ? NAV_ACTIVE_CLASS : NAV_CLASS; });
+            }
+            renderPortfolio('all');
+            filterExperience('all');
+            const target = document.getElementById(expId);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            highlightExp(expId);
+        }
+
+        // Highlight Experience
+        function highlightExp(expId) {
+            document.querySelectorAll('.exp-card').forEach(el => {
+                el.classList.remove('ring-2', 'ring-bamboo-500', 'rounded-xl');
+            });
+            const target = document.getElementById(expId);
+            if(target) {
+                target.classList.add('ring-2', 'ring-bamboo-500', 'rounded-xl');
+            }
+        }
+
+        // Initialize icons & grid
+        window.onload = () => {
+            lucide.createIcons();
+            renderPortfolio('all');
+            filterExperience('all');
+            renderPhotoGrid();
+        }
+    </script>
+</body>
+</html>
