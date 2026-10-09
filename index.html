@@ -280,7 +280,7 @@
         <aside class="order-first md:order-none w-full md:w-64 bg-white/60 border-l border-gray-200 p-4 md:pt-[4.25rem] md:sticky md:top-0 md:h-screen md:overflow-y-auto custom-scrollbar">
             <!-- 原比例照片，不裁切、不做圆形。窄屏时限制宽度居中，
                  否则全宽会有 500px 高，把姓名和联系方式挤到首屏之外 -->
-            <img src="./images/author-photo.jpg" alt="沈小月"
+            <img src="./images/author-photo.webp" alt="沈小月"
                  class="w-full max-w-[15rem] mx-auto md:mx-0 md:max-w-none h-auto rounded-lg shadow-sm">
 
             <h1 class="mt-3 font-bold text-lg text-gray-900 leading-tight">沈小月</h1>
@@ -462,20 +462,20 @@
         // 连续编号的图片路径：<dir>/01.jpg ~ NN.jpg（pad=1 时不补零）
         function seqImages(dir, count, pad = 2) {
             return Array.from({ length: count }, (_, i) =>
-                `${dir}/${String(i + 1).padStart(pad, '0')}.jpg`);
+                `${dir}/${String(i + 1).padStart(pad, '0')}.webp`);
         }
 
         // —— 长条拼图（sprite）——
         // GitHub 网页版一次最多只能拖拽上传 100 个文件，而逐页图片有 130+ 个，
         // 所以同尺寸的连续页面在 tools/make_strips.py 里被竖向拼成 1~2 张长图
-        // （images/sheets/<name>-<k>.jpg），网页端用 CSS 裁出其中一页（见 .strip 规则）。
+        // （images/sheets/<name>-<k>.webp），网页端用 CSS 裁出其中一页（见 .strip 规则）。
         // 每项都归一化成：
         //   src 长图路径 / y 该页在长图里的位置(0~1) / n 这张长图共拼了几页 / ar 单页 宽÷高
         function stripSet(name, ar, count, per) {
             return Array.from({ length: count }, (_, i) => {
                 const s = Math.floor(i / per);              // 第几张长图（文件名从 1 起）
                 return {
-                    src: `./images/sheets/${name}-${s + 1}.jpg`,
+                    src: `./images/sheets/${name}-${s + 1}.webp`,
                     y: (i % per) / Math.min(per, count - s * per),
                     n: Math.min(per, count - s * per),
                     ar: ar
@@ -508,12 +508,12 @@
         // 第三部分：课程实践（./images/wuseshi）。
         // 该目录为交付实拍，文件名不规律（含空格与中文）、比例也不一致，只能逐个列出
         const wuseshiPractice = [
-            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_2.jpg',
-            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_3.jpg',
-            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_7.jpg',
-            './images/wuseshi/033a250c551ff161d8707b1c4ba13f2f.jpg',
-            './images/wuseshi/7de85abacd30b66035b96df799fd8a04.jpg',
-            './images/wuseshi/c626e93a76bb8e1a11bc4979f812f1b1.jpg'
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_2.webp',
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_3.webp',
+            './images/wuseshi/沈小月 博物馆的秘密3-青少版_页面_7.webp',
+            './images/wuseshi/033a250c551ff161d8707b1c4ba13f2f.webp',
+            './images/wuseshi/7de85abacd30b66035b96df799fd8a04.webp',
+            './images/wuseshi/c626e93a76bb8e1a11bc4979f812f1b1.webp'
         ];
 
         // ART021 现场多图（长图 art021-1.jpg，6 页 16:9）
@@ -536,7 +536,7 @@
                 title: '2025 ART021 品牌合作与现场曝光落地',
                 category: 'brand',
                 type: 'gallery',
-                cover: './images/art021.jpg',
+                cover: './images/art021.webp',
                 images: art021Shots,
                 desc: '在 2025 ART021 SHANGHAI 展会中，负责 DIOR (DIOR LADY ART #10)、JNBY、CASETiFY 等 14 个品牌及餐饮合作方的现场宣传权益与设计理念落地，包含主背景墙、论坛活动布置、户外 Logo 墙及小红书社媒矩阵曝光。'
             },
@@ -545,12 +545,12 @@
                 title: '夜游醉白池——沉浸式文旅空间策划',
                 category: 'culture',
                 type: 'gallery',
-                cover: './images/zuibaichi (1).jpg',
+                cover: './images/zuibaichi (1).webp',
                 images: [
-                    './images/zuibaichi (1).jpg',
-                    './images/zuibaichi (2).jpg', 
-                    './images/zuibaichi (3).jpg',
-                    './images/zuibaichi (4).jpg',
+                    './images/zuibaichi (1).webp',
+                    './images/zuibaichi (2).webp', 
+                    './images/zuibaichi (3).webp',
+                    './images/zuibaichi (4).webp',
                 ],
                 desc: '以董其昌书画元素与松江文脉为核心的沉浸式空间策划，包含概念草图、建模辅助、光影动线设计、After Effects 动态屏风投影装置及 Unity AR 互动剧情，打造诗意夜游美学。'
             },
@@ -559,7 +559,7 @@
                 title: '美育方案与观展手册 (儿童与成人分层)',
                 category: 'culture',
                 type: 'collection',
-                cover: './images/xhs.jpg',
+                cover: './images/xhs.webp',
                 desc: '针对 7-10 岁少儿及家长的游戏化《观展手册》，以及面向成人的文化深读文案，实现精准受众分层与文化转译。点击卡片进入后可分三部分查看：四本仿真展册、成人美育课件、课程实践记录。',
                 // 第二部分 / 第三部分：图片组（单击缩略图进大图，单击大图翻下一张）
                 groups: [
@@ -586,7 +586,7 @@
                         type: 'book',
                         ratio: 1.4036,     // 页面 高/宽，用于计算翻页尺寸
                         showCover: true,   // 封面单独一屏，其后左右跨页
-                        cover: './images/sheets/picasso-cover.jpg',
+                        cover: './images/sheets/picasso-cover.webp',
                         pages: BOOK_STRIPS.picasso,
                         desc: '浦东美术馆《非常毕加索：保罗·史密斯的新视角》配套「趣味观看笔记」。以展厅动线图开场，把美术史知识拆解为「带着问题进入展厅」的观察任务，配合连线、涂画与自评栏目，让 7-10 岁观众在展厅里完成一次可留存的观看。'
                     },
@@ -597,7 +597,7 @@
                         type: 'book',
                         ratio: 1.4036,
                         showCover: true,
-                        cover: './images/sheets/qitan-cover.jpg',
+                        cover: './images/sheets/qitan-cover.webp',
                         pages: BOOK_STRIPS.qitan,
                         desc: '依据《中国奇谭》第一、二部动画短片故事策展的《造梦奇境艺术展》观展手册，以「发现你的不同面」为主线，串联单元导览、故事线索与观展记录，帮助亲子观众把屏幕里的短片转化为展厅中的观看经验。'
                     },
@@ -608,7 +608,7 @@
                         type: 'book',
                         ratio: 1.4036,
                         showCover: true,
-                        cover: './images/sheets/gejian-cover.jpg',
+                        cover: './images/sheets/gejian-cover.webp',
                         pages: BOOK_STRIPS.gejian,
                         desc: '上海民生现代美术馆《格间漫游：瑞士当代漫画艺术展》观展手册。由展览主视觉与展讯引导入场，正文以琉森国际漫画节历年海报为样本，让观众从色彩、构图等维度逐项评分，最后归纳出自己偏好的漫画风格。'
                     },
@@ -619,7 +619,7 @@
                         type: 'book',
                         ratio: 1.4027,
                         showCover: true,
-                        cover: './images/sheets/bologna-cover.jpg',
+                        cover: './images/sheets/bologna-cover.webp',
                         pages: BOOK_STRIPS.bologna,
                         desc: '朵云轩艺术中心「博洛尼亚插画展 58 届 · 上海站」趣味观看笔记。先以「概念解析」拆解绘画的一致性与多样性，再用具体作品布置观察挑战，让小朋友带着问题在展场里找画，并留出记录与创作的空间。'
                     }
@@ -631,7 +631,7 @@
                 category: 'digital',
                 type: 'gallery',
                 // 案例图与封面均为该项目线上页面的实拍截图（封面另导一张小图，见 tools/make_strips.py）
-                cover: './images/sheets/funerary-cover.jpg',
+                cover: './images/sheets/funerary-cover.webp',
                 images: funeraryShots,
                 // 线上可视化链接：弹窗里会出现「进入在线可视化」按钮
                 link: 'https://funerary-objects-va.vercel.app/?view=atom-vfx',
@@ -643,7 +643,7 @@
                 title: '《大唐以西》书籍设计 ',
                 category: 'visual',
                 type: 'book',
-                cover: './images/drawTANG.jpg',
+                cover: './images/drawTANG.webp',
                 ratio: 1.2857,    // 成品裁切后页面 高/宽
                 showCover: true,  // 第 1 页为封面，单独一屏，其余左右跨页
                 // 内页为《大唐以西》成品书 PDF 按 TrimBox 裁掉裁切线后导出，
@@ -657,7 +657,7 @@
                 title: '《反摄影者》日式摄影集装帧设计',
                 category: 'visual',
                 type: 'book',
-                cover: './images/sheets/fansheyingzhe-cover.jpg',
+                cover: './images/sheets/fansheyingzhe-cover.webp',
                 ratio: 566 / 466,  // 扫描件页面 高/宽
                 // 封面（第 1 页）单独一屏开场，其后左右跨页，共 12 屏；
                 // 页序见 fansheyingzhePages 上方的说明
@@ -675,9 +675,9 @@
             const it = asStrip(item);
             if (it.n > 1) {
                 return `<span class="strip ${cls}" style="--y:${it.y};--n:${it.n}">` +
-                       `<img src="${it.src}" alt="${alt}" loading="lazy" draggable="false"></span>`;
+                       `<img src="${it.src}" alt="${alt}" loading="lazy" decoding="async" draggable="false"></span>`;
             }
-            return `<img src="${it.src}" alt="${alt}" loading="lazy" draggable="false" class="${cls}">`;
+            return `<img src="${it.src}" alt="${alt}" loading="lazy" decoding="async" draggable="false" class="${cls}">`;
         }
 
         // 把一张图（或长条拼图里的某一页）放进大图查看框：
@@ -949,7 +949,7 @@
                 btn.type = 'button';
                 btn.className = "block w-full aspect-square overflow-hidden rounded-md ring-1 ring-black/5 bg-gray-100 hover:opacity-80 transition";
                 btn.innerHTML = `<img src="${src}" alt="艺术集 ${i + 1}" loading="lazy"
-                                      class="w-full h-full object-cover">`;
+                                      decoding="async" class="w-full h-full object-cover">`;
                 btn.onclick = () => openViewer(photoWorks, i, '艺术集');
                 grid.appendChild(btn);
             });
@@ -1066,6 +1066,8 @@
                 img.src = it.src;
                 img.alt = p.title;
                 img.draggable = false;
+                // 长图很大（一张 1000KB 上下），异步解码可以让翻页动画不被解码卡住
+                img.decoding = 'async';
 
                 box.appendChild(img);
                 pageDiv.appendChild(box);
